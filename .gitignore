@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Kanibus específico
+logs/*.log
+cache/*
+!cache/.gitkeep
+models/*.pth
+models/*.onnx
+!models/.gitkeep
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Test files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Distribution
+build/
+dist/
+*.egg-info/

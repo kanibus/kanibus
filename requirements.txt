@@ -1,0 +1,63 @@
+# Kanibus Eye-Tracking ControlNet System Dependencies
+# Core ML/CV Libraries
+mediapipe>=0.10.8
+opencv-python>=4.8.1.78
+opencv-contrib-python>=4.8.1.78
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# GPU Monitoring
+GPUtil>=1.4.0
+psutil>=5.9.0
+
+# Computer Vision & ML
+transformers>=4.35.0
+ultralytics>=8.0.0
+segment-anything>=1.0
+timm>=0.9.0
+scipy>=1.10.0
+scikit-learn>=1.3.0
+scikit-image>=0.21.0
+
+# Deep Learning Extras
+torchmetrics>=1.2.0
+pytorch-lightning>=2.0.0
+albumentations>=1.3.0
+
+# Web Services & APIs
+fastapi>=0.104.0
+uvicorn>=0.24.0
+websockets>=12.0
+pydantic>=2.4.0
+
+# Data Processing
+numpy>=1.24.0
+pandas>=2.0.0
+pillow>=10.0.0
+imageio>=2.31.0
+imageio-ffmpeg>=0.4.9
+
+# Performance & Optimization
+numba>=0.58.0
+tensorrt>=8.6.0
+onnx>=1.15.0
+onnxruntime-gpu>=1.16.0
+
+# Utilities
+tqdm>=4.66.0
+rich>=13.6.0
+loguru>=0.7.2
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
+
+# Testing & Development
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-benchmark>=4.0.0
+black>=23.9.0
+flake8>=6.1.0
+
+# Optional GPU Acceleration
+# cupy-cuda118>=12.2.0  # For CUDA 11.8
+# cupy-cuda121>=12.2.0  # For CUDA 12.1
