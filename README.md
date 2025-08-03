@@ -82,7 +82,7 @@
 cd ComfyUI/custom_nodes/
 
 # Clone the repository
-git clone https://github.com/lebigdog/Kanibus.git
+git clone https://github.com/kanibus/kanibus.git
 
 # Install dependencies
 cd Kanibus
@@ -93,7 +93,7 @@ python install.py
 ```
 
 ### **Method 2: Manual Download**
-1. Download ZIP from [GitHub Releases](https://github.com/lebigdog/Kanibus/releases)
+1. Download ZIP from [GitHub Releases](https://github.com/kanibus/kanibus/releases)
 2. Extract to `ComfyUI/custom_nodes/Kanibus`
 3. Run: `pip install -r requirements.txt`
 4. Run: `python install.py`
@@ -485,8 +485,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 **Support**
 
 - **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/lebigdog/Kanibus/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/lebigdog/Kanibus/discussions)
+- **Issues**: [GitHub Issues](https://github.com/kanibus/kanibus/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/kanibus/kanibus/discussions)
 - **Email**: staffytech@proton.me
 
 ---
@@ -497,7 +497,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 *Advancing the future of AI-powered eye tracking and human-computer interaction*
 
-[![GitHub stars](https://img.shields.io/github/stars/lebigdog/Kanibus?style=social)](https://github.com/lebigdog/Kanibus)
+[![GitHub stars](https://img.shields.io/github/stars/kanibus/kanibus?style=social)](https://github.com/kanibus/kanibus)
 [![Follow](https://img.shields.io/github/followers/lebigdog?style=social)](https://github.com/lebigdog)
 
 </div>
