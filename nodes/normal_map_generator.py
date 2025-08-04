@@ -112,16 +112,16 @@ class NormalMapGenerator:
                 grad_y = -grad_y
             
             # Create normal vectors
-        normal = np.zeros((depth_np.shape[0], depth_np.shape[1], 3))
-        normal[:, :, 0] = -grad_x  # X component (red)
-        normal[:, :, 1] = -grad_y  # Y component (green)
-        normal[:, :, 2] = 1.0      # Z component (blue)
-        
-        # Normalize vectors
-        norm = np.sqrt(np.sum(normal**2, axis=2, keepdims=True))
-        normal = normal / (norm + 1e-8)
-        
-        # Convert to 0-1 range
+            normal = np.zeros((depth_np.shape[0], depth_np.shape[1], 3))
+            normal[:, :, 0] = -grad_x  # X component (red)
+            normal[:, :, 1] = -grad_y  # Y component (green)
+            normal[:, :, 2] = 1.0      # Z component (blue)
+            
+            # Normalize vectors
+            norm = np.sqrt(np.sum(normal**2, axis=2, keepdims=True))
+            normal = normal / (norm + 1e-8)
+            
+            # Convert to 0-1 range
             normal_map = (normal + 1.0) / 2.0
             
             # Create visualization (more saturated)

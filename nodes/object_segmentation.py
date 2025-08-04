@@ -126,8 +126,8 @@ class ObjectSegmentation:
             
             # Create segmented image
             segmented = image_np.copy()
-        mask_overlay = np.zeros_like(image_np)
-        
+            mask_overlay = np.zeros_like(image_np)
+            
             for i, mask_data in enumerate(masks):
                 color = colors[i % len(colors)]
                 
@@ -145,14 +145,14 @@ class ObjectSegmentation:
                 # Draw contours on segmented image
                 contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 cv2.drawContours(segmented, contours, -1, color, 2)
-        
-        # Combine original with overlay
-        final_overlay = cv2.addWeighted(image_np, 0.7, mask_overlay, 0.3, 0)
-        
-        # Convert to tensors
-        segmented_tensor = torch.from_numpy(segmented.astype(np.float32) / 255.0).unsqueeze(0)
-        overlay_tensor = torch.from_numpy(final_overlay.astype(np.float32) / 255.0).unsqueeze(0)
-        
+            
+            # Combine original with overlay
+            final_overlay = cv2.addWeighted(image_np, 0.7, mask_overlay, 0.3, 0)
+            
+            # Convert to tensors
+            segmented_tensor = torch.from_numpy(segmented.astype(np.float32) / 255.0).unsqueeze(0)
+            overlay_tensor = torch.from_numpy(final_overlay.astype(np.float32) / 255.0).unsqueeze(0)
+            
             return (masks, segmented_tensor, overlay_tensor, len(masks))
             
         except Exception as e:

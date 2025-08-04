@@ -106,7 +106,7 @@ class HandTracking:
             confidence = 0.0
             
             if results.multi_hand_landmarks:
-            h, w = image_np.shape[:2]
+                h, w = image_np.shape[:2]
             
             for hand_idx, landmarks in enumerate(results.multi_hand_landmarks):
                 # Convert landmarks to array
@@ -139,13 +139,13 @@ class HandTracking:
                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
                 
                 confidence += 0.8  # Placeholder confidence
-        
-        confidence = confidence / max(len(hand_landmarks), 1)
-        gesture_string = ", ".join(gestures) if gestures else "none"
-        
-        # Convert to tensor
-        annotated_tensor = torch.from_numpy(annotated.astype(np.float32) / 255.0).unsqueeze(0)
-        
+            
+            confidence = confidence / max(len(hand_landmarks), 1)
+            gesture_string = ", ".join(gestures) if gestures else "none"
+            
+            # Convert to tensor
+            annotated_tensor = torch.from_numpy(annotated.astype(np.float32) / 255.0).unsqueeze(0)
+            
             return (hand_landmarks, annotated_tensor, gesture_string, confidence)
             
         except Exception as e:

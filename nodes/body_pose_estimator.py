@@ -142,10 +142,10 @@ class BodyPoseEstimator:
                 pose_landmarks = np.column_stack([pose_landmarks, 
                                                  np.full((33, 1), 1.0)])  # Add adapter compatibility flag
         
-        # Convert to tensors
-        annotated_tensor = torch.from_numpy(annotated.astype(np.float32) / 255.0).unsqueeze(0)
-        mask_tensor = torch.from_numpy(person_mask.astype(np.float32) / 255.0).unsqueeze(0).unsqueeze(-1)
-        
+            # Convert to tensors
+            annotated_tensor = torch.from_numpy(annotated.astype(np.float32) / 255.0).unsqueeze(0)
+            mask_tensor = torch.from_numpy(person_mask.astype(np.float32) / 255.0).unsqueeze(0).unsqueeze(-1)
+            
             return (pose_landmarks, annotated_tensor, mask_tensor, confidence)
             
         except Exception as e:
