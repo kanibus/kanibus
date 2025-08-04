@@ -94,9 +94,35 @@ python install.py
 
 ### **Method 2: Manual Download**
 1. Download ZIP from [GitHub Releases](https://github.com/kanibus/kanibus/releases)
-2. Extract to `ComfyUI/custom_nodes/Kanibus`
+2. Extract to `ComfyUI/custom_nodes/kanibus`
 3. Run: `pip install -r requirements.txt`
 4. Run: `python install.py`
+
+### **⚠️ IMPORTANT: Download Required Models**
+
+After installing Kanibus, you **MUST** download 4 ControlNet models:
+
+```bash
+# Automatic download (recommended)
+python download_models.py
+
+# Or download manually from links in REQUIRED_MODELS.md
+```
+
+**Required Models** (~5.6GB total):
+- `control_v11p_sd15_scribble.pth` - For eye mask control
+- `control_v11f1p_sd15_depth.pth` - For depth map control  
+- `control_v11p_sd15_normalbae.pth` - For normal map control
+- `control_v11p_sd15_openpose.pth` - For pose control
+
+**📋 See [REQUIRED_MODELS.md](REQUIRED_MODELS.md) for complete download instructions**
+
+### **✅ Verify Installation**
+
+```bash
+# Test if everything is working
+python test_installation.py
+```
 
 The installer will:
 - ✅ Check Python version compatibility
@@ -106,7 +132,7 @@ The installer will:
 - ✅ Create example workflows
 - ✅ Run post-installation tests
 
-### **2. Verify Installation**
+### **2. Restart ComfyUI**
 
 Restart ComfyUI and look for **Kanibus** category in the node menu. You should see 14 nodes:
 
@@ -367,50 +393,97 @@ Current test coverage: **90%+**
 
 ### **Common Issues**
 
-**1. Installation Fails**
+**1. ❌ Nodes not appearing in ComfyUI**
+```bash
+# Check if models are downloaded
+python test_installation.py
+
+# Download missing models
+python download_models.py
+
+# Restart ComfyUI completely
+```
+
+**2. ❌ "ControlNet model not found" error**
+```bash
+# Verify ControlNet models are in correct location
+ls ComfyUI/models/controlnet/
+
+# Should show these 4 files:
+# control_v11p_sd15_scribble.pth
+# control_v11f1p_sd15_depth.pth  
+# control_v11p_sd15_normalbae.pth
+# control_v11p_sd15_openpose.pth
+
+# If missing, download them:
+python download_models.py
+```
+
+**3. ❌ Installation fails**
 ```bash
 # Check Python version
-python --version  # Must be 3.10+
+python --version  # Must be 3.8+
 
-# Check available space
-df -h  # Need 5GB+ free
+# Check available space (need 6GB+)
+# Windows: dir
+# Linux/Mac: df -h
 
 # Manual dependency install
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 ```
 
-**2. GPU Not Detected**
+**4. ❌ GPU not detected**
 ```bash
 # Check CUDA
 nvidia-smi
 python -c "import torch; print(torch.cuda.is_available())"
 
-# Check drivers
-# Update GPU drivers to latest version
+# Update GPU drivers if needed
 ```
 
-**3. Low Performance**
+**5. ❌ Low performance**
 - Enable GPU acceleration in settings
-- Reduce video resolution/quality
+- Reduce video resolution/quality  
 - Increase cache size limits
 - Close other GPU-intensive applications
+- Run: `python test_installation.py` to check GPU memory
 
-**4. Memory Issues**
-- Reduce batch size in configuration
+**6. ❌ Memory issues**
+- Reduce batch size in node configuration
 - Enable intelligent caching
-- Lower memory limits in config.json
 - Use FP16 precision if supported
+- Check available GPU memory: `nvidia-smi`
 
-### **Debug Mode**
+### **🧪 Full System Test**
 
-Enable detailed logging:
+Run comprehensive test to identify issues:
 
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
+```bash
+# Test everything
+python test_installation.py
+
+# Test with automatic fixes
+python test_installation.py --fix-issues
+
+# Verbose output for debugging
+python test_installation.py --verbose
 ```
 
-Check logs in `logs/kanibus.log` for detailed diagnostics.
+### **📋 Quick Fix Checklist**
+
+- [ ] Python 3.8+ installed
+- [ ] All dependencies installed (`pip install -r requirements.txt`)
+- [ ] 4 ControlNet models downloaded (~5.6GB)
+- [ ] ComfyUI restarted after installation
+- [ ] GPU drivers up to date
+- [ ] At least 6GB free disk space
+- [ ] At least 4GB GPU memory (recommended)
+
+### **🆘 Still having issues?**
+
+1. **Run diagnostic**: `python test_installation.py --verbose`
+2. **Check logs**: Look in `logs/kanibus.log` for detailed errors
+3. **Get help**: [GitHub Issues](https://github.com/kanibus/kanibus/issues) with test results
 
 ---
 
