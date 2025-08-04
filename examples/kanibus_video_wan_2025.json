@@ -1,0 +1,290 @@
+{
+  "version": "0.4",
+  "last_node_id": 8,
+  "last_link_id": 15,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "VideoFrameLoader",
+      "pos": [50, 50],
+      "size": {"0": 315, "1": 450},
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "frames", "type": "IMAGE", "links": [1, 2], "shape": 3},
+        {"name": "metadata", "type": "VIDEO_METADATA", "links": [3], "shape": 3},
+        {"name": "total_frames", "type": "INT", "links": null},
+        {"name": "actual_fps", "type": "FLOAT", "links": null}
+      ],
+      "properties": {"Node name for S&R": "VideoFrameLoader"},
+      "widgets_values": [
+        "input_video.mp4",
+        0,
+        -1,
+        1,
+        30.0,
+        1280,
+        720,
+        "high",
+        true,
+        8,
+        64,
+        4.0,
+        "RGB",
+        "auto_detect",
+        true
+      ],
+      "title": "🎬 Video Frame Loader"
+    },
+    {
+      "id": 2,
+      "type": "KanibusMaster",
+      "pos": [400, 50],
+      "size": {"0": 450, "1": 750},
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "image", "type": "IMAGE", "link": 1},
+        {"name": "video_metadata", "type": "VIDEO_METADATA", "link": 3}
+      ],
+      "outputs": [
+        {"name": "kanibus_result", "type": "KANIBUS_RESULT", "links": null},
+        {"name": "processed_image", "type": "IMAGE", "links": [4], "shape": 3},
+        {"name": "eye_mask", "type": "MASK", "links": [5], "shape": 3},
+        {"name": "depth_map", "type": "IMAGE", "links": [6], "shape": 3},
+        {"name": "normal_map", "type": "IMAGE", "links": [7], "shape": 3},
+        {"name": "pose_visualization", "type": "IMAGE", "links": null},
+        {"name": "controlnet_conditioning", "type": "CONDITIONING", "links": [8, 9], "shape": 3},
+        {"name": "processing_report", "type": "STRING", "links": null}
+      ],
+      "properties": {"Node name for S&R": "KanibusMaster"},
+      "widgets_values": [
+        "video",
+        "streaming",
+        "auto_detect",
+        30.0,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        "ultra",
+        "high",
+        0.8,
+        1.3,
+        1.0,
+        0.7,
+        0.9,
+        0.6,
+        0.5,
+        8,
+        true,
+        true,
+        true
+      ],
+      "title": "🧠 Kanibus Master"
+    },
+    {
+      "id": 3,
+      "type": "TemporalSmoother",
+      "pos": [900, 50],
+      "size": {"0": 315, "1": 400},
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "current_frame", "type": "IMAGE", "link": 4}
+      ],
+      "outputs": [
+        {"name": "smoothed_frame", "type": "IMAGE", "links": [10], "shape": 3},
+        {"name": "motion_visualization", "type": "IMAGE", "links": null},
+        {"name": "motion_amount", "type": "FLOAT", "links": null},
+        {"name": "smoothing_applied", "type": "FLOAT", "links": null}
+      ],
+      "properties": {"Node name for S&R": "TemporalSmoother"},
+      "widgets_values": [
+        0.8,
+        7,
+        "exponential",
+        true,
+        true,
+        true,
+        "auto",
+        "enhanced"
+      ],
+      "title": "🔄 Temporal Smoother"
+    },
+    {
+      "id": 4,
+      "type": "AIDepthControl",
+      "pos": [50, 550],
+      "size": {"0": 315, "1": 350},
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {"name": "image", "type": "IMAGE", "link": 2}
+      ],
+      "outputs": [
+        {"name": "depth_map", "type": "IMAGE", "links": [11], "shape": 3},
+        {"name": "normalized_depth", "type": "IMAGE", "links": null},
+        {"name": "depth_visualization", "type": "IMAGE", "links": [12], "shape": 3},
+        {"name": "depth_values", "type": "DEPTH_DATA", "links": null}
+      ],
+      "properties": {"Node name for S&R": "AIDepthControl"},
+      "widgets_values": [
+        "midas",
+        "hybrid",
+        true,
+        0.001,
+        10.0,
+        "turbo",
+        true,
+        "auto_detect",
+        true
+      ],
+      "title": "🌊 AI Depth Control"
+    },
+    {
+      "id": 5,
+      "type": "MultiControlNetApply",
+      "pos": [400, 900],
+      "size": {"0": 500, "1": 650},
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {"name": "model", "type": "MODEL", "link": null},
+        {"name": "positive", "type": "CONDITIONING", "link": 8},
+        {"name": "negative", "type": "CONDITIONING", "link": 9},
+        {"name": "eye_mask", "type": "MASK", "link": 5},
+        {"name": "depth_map", "type": "IMAGE", "link": 6},
+        {"name": "normal_map", "type": "IMAGE", "link": 7}
+      ],
+      "outputs": [
+        {"name": "positive", "type": "CONDITIONING", "links": [13], "shape": 3},
+        {"name": "negative", "type": "CONDITIONING", "links": [14], "shape": 3}
+      ],
+      "properties": {"Node name for S&R": "MultiControlNetApply"},
+      "widgets_values": [
+        1.3,
+        1.0,
+        0.7,
+        0.9,
+        0.6,
+        0.5,
+        0.4,
+        "auto_detect",
+        0.0,
+        1.0,
+        7.5,
+        0.6,
+        true
+      ],
+      "title": "🎛️ Multi-ControlNet Apply"
+    },
+    {
+      "id": 6,
+      "type": "PreviewImage",
+      "pos": [1250, 50],
+      "size": {"0": 315, "1": 246},
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {"name": "images", "type": "IMAGE", "link": 10}
+      ],
+      "properties": {"Node name for S&R": "PreviewImage"},
+      "title": "🖼️ Smoothed Output"
+    },
+    {
+      "id": 7,
+      "type": "PreviewImage",
+      "pos": [400, 550],
+      "size": {"0": 315, "1": 246},
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {"name": "images", "type": "IMAGE", "link": 12}
+      ],
+      "properties": {"Node name for S&R": "PreviewImage"},
+      "title": "🌊 Depth Visualization"
+    },
+    {
+      "id": 8,
+      "type": "Note",
+      "pos": [950, 900],
+      "size": {"0": 350, "1": 200},
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "properties": {
+        "text": "🚀 KANIBUS 2025 VIDEO WORKFLOW\n\n✨ New Features:\n• Unified 'Kanibus' category\n• T2I-Adapter support (enable_t2i_adapter)\n• WAN auto-detection\n• Enhanced temporal consistency\n• Improved error handling\n\n📝 All nodes updated with:\n• wan_optimization parameter\n• enable_t2i_adapter toggle\n• Better performance metrics\n\n⚡ Compatible with:\n• WAN 2.1 (480p optimized)\n• WAN 2.2 (720p optimized)\n• T2I-Adapters (94% smaller)"
+      },
+      "title": "📋 2025 Updates"
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "IMAGE"],
+    [2, 1, 0, 4, 0, "IMAGE"],
+    [3, 1, 1, 2, 1, "VIDEO_METADATA"],
+    [4, 2, 1, 3, 0, "IMAGE"],
+    [5, 2, 2, 5, 3, "MASK"],
+    [6, 2, 3, 5, 4, "IMAGE"],
+    [7, 2, 4, 5, 5, "IMAGE"],
+    [8, 2, 6, 5, 1, "CONDITIONING"],
+    [9, 2, 6, 5, 2, "CONDITIONING"],
+    [10, 3, 0, 6, 0, "IMAGE"],
+    [11, 4, 0, null, null, "IMAGE"],
+    [12, 4, 2, 7, 0, "IMAGE"],
+    [13, 5, 0, null, null, "CONDITIONING"],
+    [14, 5, 1, null, null, "CONDITIONING"],
+    [15, 1, 0, null, null, "IMAGE"]
+  ],
+  "groups": [
+    {
+      "title": "🎬 VIDEO PROCESSING PIPELINE",
+      "bounding": [25, 0, 1300, 500],
+      "color": "#3f789e",
+      "font_size": 24
+    },
+    {
+      "title": "🎛️ CONTROLNET INTEGRATION",
+      "bounding": [25, 525, 925, 1100],
+      "color": "#a1309b",
+      "font_size": 24
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7,
+      "offset": [0, 0]
+    },
+    "info": {
+      "name": "Kanibus Video WAN 2025",
+      "author": "Kanibus Team",
+      "description": "Modern video processing workflow with unified Kanibus category, T2I-Adapter support, and WAN optimization",
+      "version": "2.0",
+      "created": "2025-01-05",
+      "compatibility": ["WAN 2.1", "WAN 2.2", "T2I-Adapter"],
+      "features": [
+        "Unified Kanibus category",
+        "T2I-Adapter support",
+        "WAN auto-detection",
+        "Temporal consistency",
+        "Multi-modal ControlNet"
+      ],
+      "requirements": {
+        "gpu_memory": "8GB+ recommended",
+        "models": ["T2I-Adapters or ControlNet models"]
+      }
+    }
+  }
+}
