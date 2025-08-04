@@ -34,10 +34,14 @@ class TemporalSmoother:
             },
             "optional": {
                 "previous_frames": ("IMAGE",),
-                "frame_weights": ("STRING", {"default": "exponential"}),  # linear, exponential, gaussian
+                "frame_weights": (["linear", "exponential", "gaussian"], {"default": "exponential"}),
                 "motion_compensation": ("BOOLEAN", {"default": True}),
                 "adaptive_smoothing": ("BOOLEAN", {"default": True}),
                 "cache_results": ("BOOLEAN", {"default": True}),
+                
+                # WAN optimization
+                "wan_version": (["auto", "wan_2.1", "wan_2.2"], {"default": "auto"}),
+                "temporal_consistency_mode": (["standard", "enhanced", "ultra"], {"default": "enhanced"}),
             }
         }
     

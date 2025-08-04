@@ -78,6 +78,10 @@ class VideoFrameLoader:
                 "resize_height": ("INT", {"default": -1, "min": -1, "max": 4096}),  # -1 = original
                 "quality": (["original", "high", "medium", "low"], {"default": "high"}),
                 "enable_caching": ("BOOLEAN", {"default": True}),
+                
+                # WAN compatibility settings
+                "wan_version": (["auto", "wan_2.1", "wan_2.2"], {"default": "auto"}),
+                "optimize_for_wan": ("BOOLEAN", {"default": True}),
                 "batch_size": ("INT", {"default": 8, "min": 1, "max": 64}),
                 "preload_frames": ("INT", {"default": 32, "min": 0, "max": 256}),
                 "color_space": (["RGB", "BGR", "GRAY", "HSV", "LAB"], {"default": "RGB"}),
@@ -225,6 +229,52 @@ class VideoFrameLoader:
         # BGR is default, no conversion needed
         
         return processed
+    
+    def _optimize_for_wan(self, wan_version: str, width: int, height: int, fps: float) -> tuple:
+        """Optimize video parameters for WAN compatibility"""
+        if wan_version == "wan_2.1":
+            # WAN 2.1 optimization: 480p, 24fps
+            optimal_width = 854
+            optimal_height = 480
+            optimal_fps = 24.0
+            
+            # Apply optimization if not manually overridden
+            if width <= 0:  # Auto-resize
+                width = optimal_width
+            if height <= 0:  # Auto-resize  
+                height = optimal_height
+            if fps <= 0:  # Auto-fps
+                fps = optimal_fps
+                
+            return width, height, fps, "WAN 2.1 optimized (854x480@24fps)"
+            
+        elif wan_version == "wan_2.2":
+            # WAN 2.2 optimization: 720p, 30fps
+            optimal_width = 1280
+            optimal_height = 720
+            optimal_fps = 30.0
+            
+            # Apply optimization if not manually overridden
+            if width <= 0:  # Auto-resize
+                width = optimal_width
+            if height <= 0:  # Auto-resize
+                height = optimal_height
+            if fps <= 0:  # Auto-fps
+                fps = optimal_fps
+                
+            return width, height, fps, "WAN 2.2 optimized (1280x720@30fps)"
+            
+        else:
+            # Auto-detect based on input resolution
+            if width > 0 and height > 0:
+                # Use provided resolution to determine WAN version
+                if width <= 854 and height <= 480:
+                    return self._optimize_for_wan("wan_2.1", width, height, fps)
+                else:
+                    return self._optimize_for_wan("wan_2.2", width, height, fps)
+            
+            # Default to WAN 2.2 for better quality
+            return self._optimize_for_wan("wan_2.2", width, height, fps)
     
     def _load_frame_batch(self, cap: cv2.VideoCapture, frame_numbers: List[int],
                          metadata: VideoMetadata, resize_width: int, resize_height: int,

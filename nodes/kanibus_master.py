@@ -77,14 +77,27 @@ class KanibusConfig:
     
     def __post_init__(self):
         if self.controlnet_weights is None:
+            # Updated weights for T2I-Adapters (more efficient than legacy ControlNet)
             self.controlnet_weights = {
-                "eye_mask": 1.3,
-                "depth": 1.0,
-                "normal": 0.7,
-                "landmarks": 0.9,
-                "pose": 0.6,
+                "eye_mask": 1.1,      # Reduced for T2I-Adapter efficiency
+                "depth": 0.9,         # T2I-Adapter depth
+                "canny": 0.6,         # T2I-Adapter canny (replaces normal)
+                "sketch": 1.2,        # T2I-Adapter sketch
+                "landmarks": 0.8,     # Reduced for efficiency
+                "pose": 0.7,          # T2I-Adapter openpose
                 "hands": 0.5
             }
+            
+            # WAN-specific weight adjustments
+            if self.wan_version == WanVersion.WAN_21:
+                # Further reduce weights for WAN 2.1 (480p efficiency)
+                for key in self.controlnet_weights:
+                    self.controlnet_weights[key] *= 0.85
+            elif self.wan_version == WanVersion.WAN_22:
+                # Optimize weights for WAN 2.2 (720p quality)
+                self.controlnet_weights["eye_mask"] = 1.3
+                self.controlnet_weights["depth"] = 1.0
+                self.controlnet_weights["canny"] = 0.7
 
 @dataclass
 class KanibusResult:
@@ -160,13 +173,17 @@ class KanibusMaster:
                 "depth_quality": (["low", "medium", "high"], {"default": "medium"}),
                 "temporal_smoothing": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 1.0, "step": 0.1}),
                 
-                # ControlNet weights
-                "eye_mask_weight": ("FLOAT", {"default": 1.3, "min": 0.0, "max": 3.0, "step": 0.1}),
-                "depth_weight": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 3.0, "step": 0.1}),
-                "normal_weight": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 3.0, "step": 0.1}),
-                "landmarks_weight": ("FLOAT", {"default": 0.9, "min": 0.0, "max": 3.0, "step": 0.1}),
-                "pose_weight": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 3.0, "step": 0.1}),
+                # T2I-Adapter weights (optimized for efficiency)
+                "eye_mask_weight": ("FLOAT", {"default": 1.1, "min": 0.0, "max": 3.0, "step": 0.1}),
+                "depth_weight": ("FLOAT", {"default": 0.9, "min": 0.0, "max": 3.0, "step": 0.1}),
+                "canny_weight": ("FLOAT", {"default": 0.6, "min": 0.0, "max": 3.0, "step": 0.1}),
+                "sketch_weight": ("FLOAT", {"default": 1.2, "min": 0.0, "max": 3.0, "step": 0.1}),
+                "landmarks_weight": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 3.0, "step": 0.1}),
+                "pose_weight": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 3.0, "step": 0.1}),
                 "hands_weight": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 3.0, "step": 0.1}),
+                
+                # Model preferences
+                "model_preference": (["t2i_adapter", "legacy_controlnet", "auto"], {"default": "t2i_adapter"}),
                 
                 # Performance
                 "batch_size": ("INT", {"default": 1, "min": 1, "max": 16}),

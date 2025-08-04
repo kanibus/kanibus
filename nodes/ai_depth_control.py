@@ -48,6 +48,10 @@ class AIDepthControl:
                 "enable_preprocessing": ("BOOLEAN", {"default": True}),
                 "enable_postprocessing": ("BOOLEAN", {"default": True}),
                 "cache_results": ("BOOLEAN", {"default": True}),
+                
+                # T2I-Adapter compatibility
+                "output_format": (["t2i_adapter", "controlnet", "both"], {"default": "t2i_adapter"}),
+                "wan_optimization": ("BOOLEAN", {"default": True}),
             }
         }
     
