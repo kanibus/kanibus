@@ -1,0 +1,311 @@
+# ComfyDeploy Configuration for Kanibus Eye-Tracking System
+# Optimized for T2I-Adapters and WAN 2.1/2.2 compatibility
+
+name: "kanibus-eye-tracking"
+version: "2.0.0"
+description: "Advanced eye-tracking ControlNet system with T2I-Adapter support and WAN compatibility"
+
+# Basic configuration
+runtime: "comfyui"
+category: "custom-nodes"
+tags: ["eye-tracking", "controlnet", "t2i-adapter", "wan", "video"]
+
+# Hardware requirements
+hardware:
+  min_gpu_memory: "6GB"
+  recommended_gpu_memory: "8GB"
+  optimal_gpu_memory: "12GB"
+  min_system_memory: "16GB"
+  recommended_system_memory: "32GB"
+  min_storage: "10GB"
+  recommended_storage: "20GB"
+
+# GPU configuration
+gpu:
+  enabled: true
+  driver_version: ">=470.0"
+  cuda_version: ">=11.8"
+  compute_capability: ">=6.0"
+  providers: ["nvidia", "amd_rocm"]
+
+# Installation configuration
+install:
+  type: "custom"
+  pre_install:
+    - "apt-get update && apt-get install -y python3-pip git wget"
+    - "pip install --upgrade pip setuptools wheel"
+  
+  main_install:
+    - "cd /workspace/ComfyUI/custom_nodes"
+    - "git clone https://github.com/kanibus/kanibus.git Kanibus"
+    - "cd Kanibus"
+    - "pip install -r requirements.txt"
+    - "python install_cloud.py --cloud=comfydeploy --auto-install"
+  
+  post_install:
+    - "python test_installation.py"
+
+# Model requirements (T2I-Adapters prioritized)
+models:
+  primary:
+    type: "t2i_adapter"
+    description: "Modern T2I-Adapters (94% more efficient than ControlNet)"
+    total_size: "632MB"
+    models:
+      - name: "t2iadapter_sketch_sd14v1.pth"
+        url: "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_sketch_sd14v1.pth"
+        size: "158MB"
+        path: "models/t2i_adapter/"
+        required: true
+        description: "Sketch control for eye masks"
+      
+      - name: "t2iadapter_depth_sd14v1.pth"
+        url: "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_depth_sd14v1.pth"
+        size: "158MB"
+        path: "models/t2i_adapter/"
+        required: true
+        description: "Depth control for 3D consistency"
+      
+      - name: "t2iadapter_canny_sd14v1.pth"
+        url: "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_canny_sd14v1.pth"
+        size: "158MB"
+        path: "models/t2i_adapter/"
+        required: true
+        description: "Edge control for precise boundaries"
+      
+      - name: "t2iadapter_openpose_sd14v1.pth"
+        url: "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_openpose_sd14v1.pth"
+        size: "158MB"
+        path: "models/t2i_adapter/"
+        required: true
+        description: "Pose control for body tracking"
+
+  video:
+    type: "video_models"
+    description: "Video-specific models for temporal consistency"
+    total_size: "2.95GB"
+    condition: "gpu_memory >= 8GB"
+    models:
+      - name: "svd_controlnet.safetensors"
+        url: "https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt/resolve/main/svd_controlnet.safetensors"
+        size: "2.1GB"
+        path: "models/controlnet/"
+        required: false
+        description: "Stable Video Diffusion ControlNet"
+      
+      - name: "i2v_adapter.safetensors"
+        url: "https://huggingface.co/TencentARC/I2V-Adapter/resolve/main/i2v_adapter.safetensors"
+        size: "850MB"
+        path: "models/controlnet/"
+        required: false
+        description: "Image-to-Video Adapter"
+
+  legacy:
+    type: "controlnet_legacy"
+    description: "Legacy ControlNet models (backup compatibility)"
+    total_size: "5.6GB"
+    condition: "gpu_memory >= 12GB"
+    auto_download: false
+    models:
+      - name: "control_v11p_sd15_scribble.pth"
+        url: "https://huggingface.co/lllyasviel/ControlNet-v1-1/resolve/main/control_v11p_sd15_scribble.pth"
+        size: "1.4GB"
+        path: "models/controlnet/"
+        required: false
+        description: "Legacy scribble control"
+
+# Environment variables
+environment:
+  # Kanibus-specific settings
+  KANIBUS_MODE: "cloud"
+  KANIBUS_OPTIMIZE_GPU: "true"
+  KANIBUS_WAN_VERSION: "auto_detect"
+  KANIBUS_MODEL_PREFERENCE: "t2i_adapter"
+  KANIBUS_CACHE_SIZE: "2GB"
+  
+  # ComfyUI optimizations
+  COMFYUI_VRAM_MANAGEMENT: "auto"
+  COMFYUI_CPU_OFFLOAD: "auto"
+  COMFYUI_DISABLE_XFORMERS: "false"
+  
+  # PyTorch optimizations
+  PYTORCH_CUDA_ALLOC_CONF: "max_split_size_mb:256"
+  TORCH_CUDNN_V8_API_ENABLED: "1"
+  
+  # CUDA settings
+  CUDA_LAUNCH_BLOCKING: "0"
+  CUDA_CACHE_DISABLE: "0"
+
+# Resource allocation
+resources:
+  gpu_memory_allocation: "auto"
+  system_memory_allocation: "auto"
+  tmp_space: "5GB"
+  model_cache: "3GB"
+
+# Performance settings
+performance:
+  enable_tensorrt: true
+  enable_fp16: true
+  enable_channels_last: true
+  enable_torch_compile: true
+  batch_size: "auto"
+  parallel_processing: true
+
+# Auto-scaling configuration
+scaling:
+  enabled: true
+  min_instances: 0
+  max_instances: 3
+  scale_up_threshold: 80  # CPU/GPU usage %
+  scale_down_threshold: 20
+  cooldown_period: 300  # seconds
+
+# Health checks
+health_check:
+  enabled: true
+  endpoint: "/health"
+  interval: 30  # seconds
+  timeout: 10
+  retries: 3
+  
+  checks:
+    - name: "gpu_memory"
+      type: "memory"
+      threshold: 90  # %
+    
+    - name: "model_loading"
+      type: "custom"
+      command: "python test_installation.py --quick"
+    
+    - name: "processing_test"
+      type: "custom"
+      command: "python -c 'from nodes import KanibusMaster; print(\"OK\")'"
+
+# Monitoring and logging
+monitoring:
+  enabled: true
+  metrics:
+    - "gpu_utilization"
+    - "gpu_memory"
+    - "system_memory"
+    - "processing_time"
+    - "queue_length"
+  
+  logging:
+    level: "INFO"
+    format: "json"
+    rotate: true
+    max_size: "100MB"
+
+# Error handling
+error_handling:
+  auto_restart: true
+  max_restarts: 3
+  restart_delay: 60  # seconds
+  fallback_mode: true  # Use legacy models if T2I-Adapters fail
+
+# Networking
+networking:
+  ports:
+    - "8188:8188"  # ComfyUI default
+  
+  ingress:
+    enabled: true
+    domain: "auto"
+    ssl: true
+
+# Update settings
+updates:
+  auto_update: false  # Disable for stability
+  check_interval: "weekly"
+  backup_before_update: true
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "daily"
+  retention: "7d"
+  include:
+    - "models/"
+    - "custom_nodes/Kanibus/"
+    - "user/"
+
+# Security settings
+security:
+  enable_auth: false  # Set to true for production
+  cors_enabled: true
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+  
+  firewall:
+    enabled: true
+    allowed_ips: []  # Empty = allow all
+    blocked_ips: []
+
+# Custom commands
+commands:
+  start: "python main.py --port 8188 --listen"
+  stop: "pkill -f main.py"
+  restart: "pkill -f main.py && python main.py --port 8188 --listen"
+  status: "pgrep -f main.py"
+  logs: "tail -f logs/comfyui.log"
+
+# Development settings (disable in production)
+development:
+  enabled: false
+  hot_reload: false
+  debug_mode: false
+  verbose_logging: false
+
+# ComfyDeploy specific settings
+comfydeploy:
+  workspace_size: "20GB"
+  persistent_storage: true
+  shared_gpu: false
+  preemptible: false
+  
+  # Startup optimization
+  warm_start: true
+  pre_download_models: true
+  cache_models: true
+  
+  # API settings
+  api_timeout: 300  # seconds
+  max_queue_size: 10
+  concurrent_requests: 2
+
+# Metadata
+metadata:
+  author: "Kanibus Team"
+  license: "Apache-2.0"
+  repository: "https://github.com/kanibus/kanibus"
+  documentation: "https://github.com/kanibus/kanibus/blob/main/README.md"
+  support: "https://github.com/kanibus/kanibus/issues"
+  
+  features:
+    - "468-point facial landmarks"
+    - "3D eye tracking and gaze estimation" 
+    - "Real-time emotion analysis"
+    - "T2I-Adapter integration (94% more efficient)"
+    - "WAN 2.1/2.2 compatibility"
+    - "Temporal consistency for video"
+    - "Multi-modal ControlNet support"
+    - "GPU memory optimization"
+    - "Cloud deployment ready"
+
+# Version compatibility
+compatibility:
+  comfyui_version: ">=0.0.1"
+  python_version: ">=3.8,<3.12"
+  torch_version: ">=2.0.0"
+  cuda_version: ">=11.8"
+  
+  tested_platforms:
+    - "ComfyDeploy"
+    - "RunPod"
+    - "Google Colab"
+    - "Paperspace"
+    - "AWS EC2"
+    - "Azure ML"

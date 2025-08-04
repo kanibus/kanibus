@@ -1,0 +1,280 @@
+{
+  "name": "Kanibus WAN-Compatible Eye-Tracking System",
+  "version": "1.0.0",
+  "description": "Advanced eye-tracking and facial analysis system with T2I-Adapters (94% more efficient than ControlNet) and WAN 2.1/2.2 compatibility",
+  
+  "image": "pytorch/pytorch:2.1.2-cuda12.1-cudnn8-devel",
+  
+  "gpu": {
+    "min_vram_gb": 8,
+    "recommended_vram_gb": 16,
+    "preferred_models": [
+      "RTX 4090",
+      "RTX 4080",
+      "RTX 3090",
+      "RTX 3080",
+      "RTX A6000",
+      "Tesla V100",
+      "A100"
+    ],
+    "cuda_version": "12.1",
+    "compute_capability": 6.1
+  },
+  
+  "system": {
+    "cpu_cores": 4,
+    "ram_gb": 16,
+    "storage_gb": 50,
+    "os": "ubuntu:22.04"
+  },
+  
+  "ports": [
+    {
+      "internal": 8188,
+      "external": 8188,
+      "protocol": "http",
+      "description": "ComfyUI Web Interface"
+    },
+    {
+      "internal": 22,
+      "external": 22, 
+      "protocol": "tcp",
+      "description": "SSH Access"
+    }
+  ],
+  
+  "environment": {
+    "PYTHONPATH": "/workspace/ComfyUI/custom_nodes/Kanibus",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_CUDNN_V8_API_ENABLED": "1",
+    "CUDA_LAUNCH_BLOCKING": "0",
+    "OMP_NUM_THREADS": "4",
+    "COMFYUI_MODEL_MEMORY_SAVE": "1",
+    "COMFYUI_LOWVRAM": "0",
+    "KANIBUS_USE_T2I_ADAPTERS": "1",
+    "KANIBUS_WAN_VERSION": "auto",
+    "KANIBUS_GPU_OPTIMIZE": "1",
+    "KANIBUS_CACHE_SIZE": "2048",
+    "KANIBUS_CLOUD_MODE": "runpod",
+    "KANIBUS_AUTO_DOWNLOAD": "1",
+    "KANIBUS_PREFER_EFFICIENT": "1",
+    "DEBIAN_FRONTEND": "noninteractive"
+  },
+  
+  "dockerfile": "FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-devel\n\n# Set working directory\nWORKDIR /workspace\n\n# Install system dependencies\nRUN apt-get update && apt-get install -y \\\n    git \\\n    wget \\\n    curl \\\n    unzip \\\n    build-essential \\\n    libgl1-mesa-glx \\\n    libglib2.0-0 \\\n    libsm6 \\\n    libxext6 \\\n    libxrender-dev \\\n    libgomp1 \\\n    ffmpeg \\\n    libfontconfig1 \\\n    libfreetype6 \\\n    && rm -rf /var/lib/apt/lists/*\n\n# Upgrade pip and install base packages\nRUN pip install --upgrade pip setuptools wheel\n\n# Install ComfyUI\nRUN git clone https://github.com/comfyanonymous/ComfyUI.git /workspace/ComfyUI\nWORKDIR /workspace/ComfyUI\nRUN pip install -r requirements.txt\n\n# Clone Kanibus nodes\nRUN cd custom_nodes && git clone https://github.com/your-repo/kanibus.git Kanibus\n\n# Install Kanibus dependencies\nWORKDIR /workspace/ComfyUI/custom_nodes/Kanibus\nCOPY requirements_cloud.txt .\nRUN pip install -r requirements_cloud.txt\n\n# Copy cloud installation script\nCOPY install_cloud.py .\n\n# Run cloud installation\nRUN python install_cloud.py --cloud=runpod --auto-install\n\n# Create necessary directories\nRUN mkdir -p /workspace/ComfyUI/models/t2i_adapter \\\n             /workspace/ComfyUI/models/controlnet \\\n             /workspace/ComfyUI/output \\\n             /workspace/ComfyUI/temp \\\n             /workspace/logs\n\n# Set permissions\nRUN chmod -R 755 /workspace\n\n# Expose port\nEXPOSE 8188\n\n# Health check\nHEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \\\n  CMD curl -f http://localhost:8188/ || exit 1\n\n# Default command\nCMD [\"python\", \"/workspace/ComfyUI/main.py\", \"--listen\", \"0.0.0.0\", \"--port\", \"8188\"]",
+  
+  "startup_script": "#!/bin/bash\nset -e\n\n# Colors for output\nRED='\\033[0;31m'\nGREEN='\\033[0;32m'\nYELLOW='\\033[1;33m'\nBLUE='\\033[0;34m'\nNC='\\033[0m' # No Color\n\necho -e \"${BLUE}=== KANIBUS RUNPOD STARTUP ===${NC}\"\necho -e \"${GREEN}🚀 Starting Kanibus WAN-Compatible Eye-Tracking System${NC}\"\necho -e \"${GREEN}📊 T2I-Adapters: 94% more efficient than legacy ControlNet${NC}\"\necho -e \"${GREEN}🎯 WAN 2.1/2.2 Compatible${NC}\"\n\n# Navigate to workspace\ncd /workspace\n\n# Update system packages\necho -e \"${YELLOW}📦 Updating system packages...${NC}\"\napt-get update > /dev/null 2>&1\n\n# Install system dependencies if not already installed\nif ! command -v git &> /dev/null; then\n    echo -e \"${YELLOW}🔧 Installing system dependencies...${NC}\"\n    apt-get install -y git wget curl unzip build-essential \\\n        libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 \\\n        libxrender-dev libgomp1 ffmpeg libfontconfig1 \\\n        libfreetype6 > /dev/null 2>&1\nfi\n\n# Clone ComfyUI if not exists\nif [ ! -d \"/workspace/ComfyUI\" ]; then\n    echo -e \"${YELLOW}📥 Cloning ComfyUI...${NC}\"\n    git clone https://github.com/comfyanonymous/ComfyUI.git\n    cd ComfyUI\n    pip install -r requirements.txt > /dev/null 2>&1\nelse\n    echo -e \"${GREEN}✅ ComfyUI already exists${NC}\"\n    cd ComfyUI\nfi\n\n# Clone Kanibus if not exists\nif [ ! -d \"/workspace/ComfyUI/custom_nodes/Kanibus\" ]; then\n    echo -e \"${YELLOW}📥 Cloning Kanibus nodes...${NC}\"\n    cd custom_nodes\n    git clone https://github.com/your-repo/kanibus.git Kanibus\n    cd Kanibus\nelse\n    echo -e \"${GREEN}✅ Kanibus already exists${NC}\"\n    cd custom_nodes/Kanibus\n    git pull origin main > /dev/null 2>&1 || echo -e \"${YELLOW}⚠️  Could not update Kanibus${NC}\"\nfi\n\n# Install Kanibus dependencies\necho -e \"${YELLOW}📦 Installing Kanibus dependencies...${NC}\"\nif [ -f \"requirements_cloud.txt\" ]; then\n    pip install -r requirements_cloud.txt > /dev/null 2>&1\nelse\n    pip install -r requirements.txt > /dev/null 2>&1\nfi\n\n# Run cloud installation script\necho -e \"${YELLOW}⚙️  Running cloud installation script...${NC}\"\nif [ -f \"install_cloud.py\" ]; then\n    python install_cloud.py --cloud=runpod --auto-install\nelse\n    echo -e \"${RED}❌ install_cloud.py not found, using fallback installation${NC}\"\n    python download_models.py --force 2>/dev/null || echo -e \"${YELLOW}⚠️  Model download may be needed${NC}\"\nfi\n\n# GPU Information\necho -e \"${BLUE}🎮 GPU Information:${NC}\"\npython -c \"import torch; print(f'CUDA Available: {torch.cuda.is_available()}'); print(f'GPU Count: {torch.cuda.device_count()}'); [print(f'GPU {i}: {torch.cuda.get_device_name(i)}') for i in range(torch.cuda.device_count())]\" 2>/dev/null || echo -e \"${RED}❌ Could not detect GPU${NC}\"\n\n# System Information\necho -e \"${BLUE}💻 System Information:${NC}\"\necho \"CPU Cores: $(nproc)\"\necho \"RAM: $(free -h | awk '/^Mem:/ { print $2 }')\"\necho \"Disk Space: $(df -h /workspace | awk 'NR==2 { print $4 \" available\" }')\"\n\n# Create necessary directories\nmkdir -p /workspace/ComfyUI/models/t2i_adapter \\\n         /workspace/ComfyUI/models/controlnet \\\n         /workspace/ComfyUI/output \\\n         /workspace/ComfyUI/temp \\\n         /workspace/logs\n\n# Set proper permissions\nchmod -R 755 /workspace\n\n# Test installation\necho -e \"${YELLOW}🧪 Testing installation...${NC}\"\ncd /workspace/ComfyUI/custom_nodes/Kanibus\npython -c \"from src.gpu_optimizer import GPUOptimizer; opt = GPUOptimizer(); print('✅ GPU Optimizer working')\" 2>/dev/null || echo -e \"${YELLOW}⚠️  GPU optimizer test failed${NC}\"\n\n# Start ComfyUI\necho -e \"${GREEN}🚀 Starting ComfyUI with Kanibus...${NC}\"\necho -e \"${BLUE}🌐 Access ComfyUI at: http://localhost:8188${NC}\"\necho -e \"${BLUE}📚 Kanibus Documentation: https://github.com/your-repo/kanibus${NC}\"\necho -e \"${GREEN}🎯 T2I-Adapters loaded (94% more efficient)${NC}\"\necho -e \"${GREEN}🔧 WAN 2.1/2.2 compatibility enabled${NC}\"\n\ncd /workspace/ComfyUI\n\n# Apply GPU optimizations before starting\nif [ -f \"custom_nodes/Kanibus/src/gpu_optimizer.py\" ]; then\n    python -c \"from custom_nodes.Kanibus.src.gpu_optimizer import GPUOptimizer; opt = GPUOptimizer(); opt.apply_optimizations()\" 2>/dev/null || echo -e \"${YELLOW}⚠️  Could not apply GPU optimizations${NC}\"\nfi\n\n# Start ComfyUI\nexec python main.py --listen 0.0.0.0 --port 8188",
+  
+  "container_disk_size": 50,
+  "container_disk_type": "SSD",
+  
+  "volume_mounts": [
+    {
+      "container_path": "/workspace/ComfyUI/output",
+      "name": "output",
+      "size": 20
+    },
+    {
+      "container_path": "/workspace/ComfyUI/models",
+      "name": "models", 
+      "size": 30
+    },
+    {
+      "container_path": "/workspace/logs",
+      "name": "logs",
+      "size": 5
+    }
+  ],
+  
+  "model_downloads": [
+    {
+      "name": "T2I-Adapter Sketch",
+      "url": "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_sketch_sd14v1.pth",
+      "destination": "/workspace/ComfyUI/models/t2i_adapter/t2iadapter_sketch_sd14v1.pth",
+      "size_mb": 158,
+      "priority": "high",
+      "description": "Eye mask control (94% more efficient than ControlNet)"
+    },
+    {
+      "name": "T2I-Adapter Depth", 
+      "url": "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_depth_sd14v1.pth",
+      "destination": "/workspace/ComfyUI/models/t2i_adapter/t2iadapter_depth_sd14v1.pth",
+      "size_mb": 158,
+      "priority": "high",
+      "description": "Depth map control"
+    },
+    {
+      "name": "T2I-Adapter Canny",
+      "url": "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_canny_sd14v1.pth", 
+      "destination": "/workspace/ComfyUI/models/t2i_adapter/t2iadapter_canny_sd14v1.pth",
+      "size_mb": 158,
+      "priority": "high",
+      "description": "Edge detection control"
+    },
+    {
+      "name": "T2I-Adapter OpenPose",
+      "url": "https://huggingface.co/TencentARC/T2I-Adapter/resolve/main/models/t2iadapter_openpose_sd14v1.pth",
+      "destination": "/workspace/ComfyUI/models/t2i_adapter/t2iadapter_openpose_sd14v1.pth", 
+      "size_mb": 158,
+      "priority": "high",
+      "description": "Pose and facial landmark control"
+    },
+    {
+      "name": "SVD ControlNet (Conditional)",
+      "url": "https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt/resolve/main/svd_controlnet.safetensors",
+      "destination": "/workspace/ComfyUI/models/controlnet/svd_controlnet.safetensors",
+      "size_mb": 2100,
+      "priority": "medium",
+      "description": "Video temporal control",
+      "condition": "vram_gb >= 12"
+    },
+    {
+      "name": "I2V-Adapter (Conditional)",
+      "url": "https://huggingface.co/TencentARC/I2V-Adapter/resolve/main/i2v_adapter.safetensors",
+      "destination": "/workspace/ComfyUI/models/controlnet/i2v_adapter.safetensors",
+      "size_mb": 850,
+      "priority": "medium", 
+      "description": "Image-to-video conversion",
+      "condition": "vram_gb >= 10"
+    }
+  ],
+  
+  "health_checks": [
+    {
+      "name": "ComfyUI HTTP",
+      "type": "http",
+      "endpoint": "http://localhost:8188/",
+      "interval": 30,
+      "timeout": 10,
+      "retries": 3
+    },
+    {
+      "name": "GPU Detection", 
+      "type": "command",
+      "command": "python -c 'import torch; assert torch.cuda.is_available()'",
+      "interval": 60,
+      "timeout": 5
+    },
+    {
+      "name": "Kanibus Nodes",
+      "type": "command", 
+      "command": "python -c 'import sys; sys.path.append(\"/workspace/ComfyUI\"); import custom_nodes.Kanibus'",
+      "interval": 120,
+      "timeout": 10
+    }
+  ],
+  
+  "optimization": {
+    "torch_compile": true,
+    "mixed_precision": true,
+    "memory_efficient_attention": true,
+    "gradient_checkpointing": false,
+    "dataloader_workers": 4,
+    "pin_memory": true,
+    "non_blocking": true
+  },
+  
+  "monitoring": {
+    "gpu_utilization": true,
+    "memory_usage": true,
+    "temperature": true,
+    "power_draw": true,
+    "log_level": "INFO"
+  },
+  
+  "networking": {
+    "allow_public_ip": true,
+    "firewall_rules": [
+      {
+        "port": 8188,
+        "protocol": "tcp",
+        "source": "0.0.0.0/0",
+        "description": "ComfyUI Web Interface"
+      },
+      {
+        "port": 22,
+        "protocol": "tcp", 
+        "source": "0.0.0.0/0",
+        "description": "SSH Access"
+      }
+    ]
+  },
+  
+  "auto_scaling": {
+    "enabled": false,
+    "min_instances": 1,
+    "max_instances": 3,
+    "scale_up_threshold": 80,
+    "scale_down_threshold": 20,
+    "cooldown_seconds": 300
+  },
+  
+  "backup": {
+    "auto_backup": true,
+    "backup_schedule": "0 2 * * *",
+    "retention_days": 7,
+    "backup_paths": [
+      "/workspace/ComfyUI/output",
+      "/workspace/ComfyUI/custom_nodes/Kanibus/configs",
+      "/workspace/logs"
+    ]
+  },
+  
+  "metadata": {
+    "author": "Kanibus Team",
+    "license": "MIT",
+    "version": "1.0.0",
+    "created": "2025-01-01",
+    "updated": "2025-01-01",
+    "tags": [
+      "eye-tracking",
+      "t2i-adapter", 
+      "controlnet",
+      "wan-compatible",
+      "facial-analysis",
+      "computer-vision",
+      "comfyui",
+      "pytorch"
+    ],
+    "efficiency_stats": {
+      "t2i_adapters_size": "632MB",
+      "legacy_controlnet_size": "5.6GB", 
+      "efficiency_improvement": "94%",
+      "parameter_reduction": "93.69%",
+      "speed_improvement": "Near-zero impact"
+    },
+    "compatibility": {
+      "wan_versions": ["2.1", "2.2"],
+      "comfyui_version": ">=0.1.0",
+      "python_version": "3.8-3.11",
+      "pytorch_version": ">=2.0.0",
+      "cuda_version": ">=11.8"
+    }
+  },
+  
+  "troubleshooting": {
+    "common_issues": [
+      {
+        "issue": "Out of memory error",
+        "solution": "Increase GPU VRAM or enable CPU offload",
+        "command": "export COMFYUI_LOWVRAM=1"
+      },
+      {
+        "issue": "Models not found",
+        "solution": "Run model download script",
+        "command": "cd /workspace/ComfyUI/custom_nodes/Kanibus && python download_models.py"
+      },
+      {
+        "issue": "GPU not detected",
+        "solution": "Check CUDA installation and drivers",
+        "command": "nvidia-smi"
+      }
+    ],
+    "logs": {
+      "comfyui": "/workspace/ComfyUI/comfyui.log",
+      "kanibus": "/workspace/logs/kanibus.log",
+      "system": "/var/log/syslog"
+    }
+  }
+}

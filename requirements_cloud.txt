@@ -1,0 +1,202 @@
+# Kanibus Cloud Requirements - Optimized for Cloud Deployment
+# This file contains optimized dependencies for cloud platforms (RunPod, ComfyDeploy, etc.)
+# Designed for maximum compatibility and performance with T2I-Adapters and WAN 2.1/2.2
+
+# ===================================
+# CORE ML/COMPUTER VISION LIBRARIES
+# ===================================
+
+# PyTorch ecosystem - pinned versions for stability
+torch>=2.0.0,<2.3.0
+torchvision>=0.15.0,<0.18.0
+torchaudio>=2.0.0,<2.3.0
+
+# Computer Vision - essential for eye tracking
+opencv-python>=4.8.1.78,<5.0.0
+opencv-contrib-python>=4.8.1.78,<5.0.0
+
+# MediaPipe for facial landmarks and eye tracking
+mediapipe>=0.10.8,<0.11.0
+
+# Image processing
+pillow>=10.0.0,<11.0.0
+imageio>=2.31.0,<3.0.0
+imageio-ffmpeg>=0.4.9,<1.0.0
+scikit-image>=0.21.0,<0.22.0
+
+# Numerical computing
+numpy>=1.24.0,<2.0.0
+scipy>=1.10.0,<2.0.0
+
+# ===============================
+# DEEP LEARNING & AI FRAMEWORKS
+# ===============================
+
+# Transformers for AI models
+transformers>=4.35.0,<5.0.0
+
+# Computer vision models
+ultralytics>=8.0.0,<9.0.0
+timm>=0.9.0,<1.0.0
+
+# Segmentation
+segment-anything>=1.0
+
+# Machine learning utilities
+scikit-learn>=1.3.0,<2.0.0
+albumentations>=1.3.0,<2.0.0
+
+# Metrics and utilities
+torchmetrics>=1.2.0,<2.0.0
+
+# ============================
+# PERFORMANCE & OPTIMIZATION
+# ============================
+
+# High-performance computing
+numba>=0.58.0,<1.0.0
+
+# ONNX for model optimization
+onnx>=1.15.0,<2.0.0
+onnxruntime-gpu>=1.16.0,<2.0.0
+
+# TensorRT (optional, for NVIDIA GPUs)
+# tensorrt>=8.6.0  # Uncomment if available on your platform
+
+# ===============================
+# SYSTEM MONITORING & UTILITIES
+# ===============================
+
+# System monitoring
+psutil>=5.9.0,<6.0.0
+GPUtil>=1.4.0,<2.0.0
+
+# Progress bars and rich output
+tqdm>=4.66.0,<5.0.0
+rich>=13.6.0,<14.0.0
+
+# Logging
+loguru>=0.7.2,<1.0.0
+
+# Configuration management
+pyyaml>=6.0.1,<7.0.0
+python-dotenv>=1.0.0,<2.0.0
+
+# Data processing
+pandas>=2.0.0,<3.0.0
+
+# ========================
+# WEB SERVICES & NETWORKING
+# ========================
+
+# HTTP requests for model downloads
+requests>=2.31.0,<3.0.0
+
+# Web framework (for potential API endpoints)
+fastapi>=0.104.0,<1.0.0
+uvicorn>=0.24.0,<1.0.0
+
+# WebSocket support
+websockets>=12.0,<13.0.0
+
+# Data validation
+pydantic>=2.4.0,<3.0.0
+
+# ==================
+# CLOUD-SPECIFIC DEPS
+# ==================
+
+# Hugging Face for model downloads
+huggingface-hub>=0.17.0,<1.0.0
+
+# Google Cloud (if using GCP)
+# google-cloud-storage>=2.10.0  # Uncomment if using GCP
+
+# AWS SDK (if using AWS)
+# boto3>=1.28.0  # Uncomment if using AWS
+
+# Azure SDK (if using Azure)
+# azure-storage-blob>=12.17.0  # Uncomment if using Azure
+
+# ============================
+# DEVELOPMENT & TESTING (OPTIONAL)
+# ============================
+
+# Testing framework (only install in dev environments)
+# pytest>=7.4.0,<8.0.0
+# pytest-cov>=4.1.0,<5.0.0
+# pytest-benchmark>=4.0.0,<5.0.0
+
+# Code formatting (only install in dev environments)
+# black>=23.9.0,<24.0.0
+# flake8>=6.1.0,<7.0.0
+
+# =================================
+# CUDA-SPECIFIC PACKAGES (OPTIONAL)
+# =================================
+
+# CuPy for CUDA acceleration (uncomment based on CUDA version)
+# cupy-cuda118>=12.2.0  # For CUDA 11.8
+# cupy-cuda121>=12.2.0  # For CUDA 12.1
+
+# =================================
+# CLOUD PLATFORM OPTIMIZATIONS
+# =================================
+
+# Memory efficient dataloaders
+# torch-dataloader>=0.1.0  # If available
+
+# Accelerated training (optional)
+# accelerate>=0.24.0
+
+# Mixed precision training
+# apex  # NVIDIA Apex (if available)
+
+# ========================
+# COMPATIBILITY NOTES
+# ========================
+
+# This requirements file is optimized for:
+# - Python 3.8 - 3.11
+# - CUDA 11.8+ or 12.1+
+# - 8GB+ GPU VRAM (minimum)
+# - Linux-based cloud environments
+# - T2I-Adapters (primary models)
+# - WAN 2.1/2.2 compatibility
+
+# For different platforms, you may need to:
+# 1. Adjust PyTorch installation URLs for CPU-only or different CUDA versions
+# 2. Install platform-specific packages
+# 3. Enable/disable optional dependencies based on available resources
+
+# Memory-efficient alternatives (uncomment if needed):
+# torch-audio-io>=0.1.0  # Lighter audio processing
+# opencv-python-headless>=4.8.0  # Headless OpenCV for servers
+
+# ============================
+# INSTALLATION NOTES
+# ============================
+
+# For maximum compatibility, install in this order:
+# 1. pip install --upgrade pip setuptools wheel
+# 2. pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121  # For CUDA 12.1
+# 3. pip install -r requirements_cloud.txt
+
+# Cloud-specific notes:
+# - RunPod: PyTorch usually pre-installed, focus on CV libraries
+# - ComfyDeploy: Full installation recommended
+# - Google Colab: Some packages pre-installed
+# - Paperspace: Similar to RunPod
+
+# GPU Memory optimization tips:
+# - Use torch.compile() for PyTorch 2.0+
+# - Enable channels_last memory format
+# - Use mixed precision training
+# - Enable gradient checkpointing for large models
+
+# T2I-Adapter advantages:
+# - 94% smaller than ControlNet (158MB vs 1.4GB per model)
+# - 93.69% fewer parameters
+# - Near-zero impact on generation speed
+# - Better temporal consistency for video
+# - Native WAN 2.1/2.2 compatibility
