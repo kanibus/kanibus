@@ -30,6 +30,22 @@
 - **Use Case**: Professional content creation
 - **Performance**: High quality, requires powerful GPU
 
+### **🌟 advanced_integrated_workflow.json** ⭐ **NEW**
+**Advanced integrated pipeline with dual WAN compatibility**
+- **Resolution**: Adaptive (720p default, 480p for WAN 2.1)
+- **FPS**: 30 FPS target with temporal consistency
+- **Features**: Complete integrated pipeline
+  - Dual WAN 2.1/2.2 compatibility with auto-detection
+  - High-precision eye tracking with 3D gaze estimation
+  - 468-point facial landmarks
+  - Real-time emotion analysis (7 basic + 15 micro-expressions)
+  - Temporal frame consistency optimization
+  - Multi-modal ControlNet integration
+  - Performance monitoring and analytics
+- **Use Case**: Enterprise-grade content creation and research
+- **Performance**: Ultimate quality, requires 8GB+ GPU
+- **Documentation**: See [ADVANCED_WORKFLOW_GUIDE.md](ADVANCED_WORKFLOW_GUIDE.md)
+
 ---
 
 ## 🛠️ **How to Use Workflows**
