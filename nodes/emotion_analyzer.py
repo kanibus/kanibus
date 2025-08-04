@@ -121,21 +121,36 @@ class EmotionAnalyzer:
                     emotion: float(score) for emotion, score in zip(self.micro_expressions, micro_scores)
                 }
                 emotion_scores.update(micro_dict)
-        
-        # Find dominant emotion
-        dominant_emotion = max(emotion_scores.items(), key=lambda x: x[1])[0]
-        confidence = emotion_scores[dominant_emotion]
-        
-        # Create visualization
-        vis = image_np.copy()
-        h, w = vis.shape[:2]
-        
-        # Draw emotion bar chart
-        y_start = h - 200
-        bar_height = 20
-        max_width = 150
-        
-        for i, (emotion, score) in enumerate(list(emotion_scores.items())[:7]):\n            y = y_start + i * (bar_height + 5)\n            bar_width = int(score * max_width)\n            \n            # Draw bar\n            color = (0, 255, 0) if emotion == dominant_emotion else (100, 100, 100)\n            cv2.rectangle(vis, (10, y), (10 + bar_width, y + bar_height), color, -1)\n            \n            # Draw text\n            cv2.putText(vis, f\"{emotion}: {score:.2f}\", (10, y - 5), \n                       cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)\n        \n        # Convert to tensor\n        vis_tensor = torch.from_numpy(vis.astype(np.float32) / 255.0).unsqueeze(0)\n        \n            return (emotion_scores, vis_tensor, dominant_emotion, confidence)
+            
+            # Find dominant emotion
+            dominant_emotion = max(emotion_scores.items(), key=lambda x: x[1])[0]
+            confidence = emotion_scores[dominant_emotion]
+            
+            # Create visualization
+            vis = image_np.copy()
+            h, w = vis.shape[:2]
+            
+            # Draw emotion bar chart
+            y_start = h - 200
+            bar_height = 20
+            max_width = 150
+            
+            for i, (emotion, score) in enumerate(list(emotion_scores.items())[:7]):
+                y = y_start + i * (bar_height + 5)
+                bar_width = int(score * max_width)
+                
+                # Draw bar
+                color = (0, 255, 0) if emotion == dominant_emotion else (100, 100, 100)
+                cv2.rectangle(vis, (10, y), (10 + bar_width, y + bar_height), color, -1)
+                
+                # Draw text
+                cv2.putText(vis, f"{emotion}: {score:.2f}", (10, y - 5), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+            
+            # Convert to tensor
+            vis_tensor = torch.from_numpy(vis.astype(np.float32) / 255.0).unsqueeze(0)
+            
+            return (emotion_scores, vis_tensor, dominant_emotion, confidence)
             
         except Exception as e:
             self.logger.error(f"Error in emotion analysis: {str(e)}")
