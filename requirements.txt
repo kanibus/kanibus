@@ -1,5 +1,8 @@
-# Kanibus Eye-Tracking ControlNet System Dependencies
-# Core ML/CV Libraries
+# Kanibus WAN-Compatible Eye-Tracking System Dependencies (2025)
+# =============================================================
+# Updated for T2I-Adapter support and WAN 2.1/2.2 compatibility
+
+# Core ML/CV Libraries (REQUIRED)
 mediapipe>=0.10.8
 opencv-python>=4.8.1.78
 opencv-contrib-python>=4.8.1.78
@@ -7,29 +10,23 @@ torch>=2.0.0
 torchvision>=0.15.0
 torchaudio>=2.0.0
 
-# GPU Monitoring
+# GPU Monitoring & Optimization
 GPUtil>=1.4.0
 psutil>=5.9.0
 
-# Computer Vision & ML
+# Computer Vision & ML Models
 transformers>=4.35.0
+diffusers>=0.24.0  # For T2I-Adapter support
 ultralytics>=8.0.0
-segment-anything>=1.0
 timm>=0.9.0
 scipy>=1.10.0
 scikit-learn>=1.3.0
 scikit-image>=0.21.0
 
-# Deep Learning Extras
+# Deep Learning Optimization
 torchmetrics>=1.2.0
-pytorch-lightning>=2.0.0
 albumentations>=1.3.0
-
-# Web Services & APIs
-fastapi>=0.104.0
-uvicorn>=0.24.0
-websockets>=12.0
-pydantic>=2.4.0
+accelerate>=0.25.0  # For model optimization
 
 # Data Processing
 numpy>=1.24.0
@@ -38,26 +35,28 @@ pillow>=10.0.0
 imageio>=2.31.0
 imageio-ffmpeg>=0.4.9
 
-# Performance & Optimization
+# Performance Optimization
 numba>=0.58.0
-tensorrt>=8.6.0
-onnx>=1.15.0
-onnxruntime-gpu>=1.16.0
 
 # Utilities
 tqdm>=4.66.0
-rich>=13.6.0
-loguru>=0.7.2
 pyyaml>=6.0.1
 python-dotenv>=1.0.0
 
-# Testing & Development
-pytest>=7.4.0
-pytest-cov>=4.1.0
-pytest-benchmark>=4.0.0
-black>=23.9.0
-flake8>=6.1.0
+# Optional but Recommended
+# ========================
+# onnx>=1.15.0  # For ONNX export
+# onnxruntime-gpu>=1.16.0  # For ONNX inference
+# tensorrt>=8.6.0  # For TensorRT optimization (NVIDIA only)
 
-# Optional GPU Acceleration
-# cupy-cuda118>=12.2.0  # For CUDA 11.8
-# cupy-cuda121>=12.2.0  # For CUDA 12.1
+# Development Tools (Optional)
+# ===========================
+# pytest>=7.4.0
+# black>=23.9.0
+# flake8>=6.1.0
+
+# GPU-Specific (Install based on your hardware)
+# ============================================
+# CUDA 11.8: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# CUDA 12.1: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# CPU Only: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu

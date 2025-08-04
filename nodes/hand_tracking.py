@@ -6,8 +6,14 @@ import torch
 import numpy as np
 import cv2
 import mediapipe as mp
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Tuple, Optional, Any, Union
 import logging
+from enum import Enum
+
+class WanVersion(Enum):
+    WAN_21 = "wan_2.1"
+    WAN_22 = "wan_2.2"
+    AUTO = "auto"
 
 # Import our core system
 try:
@@ -35,6 +41,8 @@ class HandTracking:
             "optional": {
                 "enable_gestures": ("BOOLEAN", {"default": True}),
                 "smoothing": ("FLOAT", {"default": 0.5, "min": 0.0, "max": 1.0}),
+                "wan_version": (["wan_2.1", "wan_2.2", "auto"], {"default": "auto"}),
+                "enable_t2i_adapter": ("BOOLEAN", {"default": True}),
                 "cache_results": ("BOOLEAN", {"default": True}),
             }
         }
@@ -42,7 +50,7 @@ class HandTracking:
     RETURN_TYPES = ("HAND_LANDMARKS", "IMAGE", "STRING", "FLOAT")
     RETURN_NAMES = ("hand_landmarks", "annotated_image", "gestures", "confidence")
     FUNCTION = "track_hands"
-    CATEGORY = "Kanibus/Tracking"
+    CATEGORY = "Kanibus"
     
     def __init__(self):
         self.mp_hands = mp.solutions.hands
@@ -56,19 +64,41 @@ class HandTracking:
         self.logger = logging.getLogger(__name__)
         
     def track_hands(self, image, max_hands=2, detection_confidence=0.5,
-                   enable_gestures=True, smoothing=0.5, cache_results=True):
-        """Track hands and detect gestures"""
+                   enable_gestures=True, smoothing=0.5, wan_version="auto",
+                   enable_t2i_adapter=True, cache_results=True):
+        """Track hands and detect gestures with WAN/T2I-Adapter compatibility"""
         
-        # Convert input
-        if isinstance(image, torch.Tensor):
-            image_np = image.cpu().numpy()
-            if image_np.ndim == 4:
-                image_np = image_np[0]
-            image_np = (image_np * 255).astype(np.uint8)
+        try:
+            # Auto-detect WAN version if needed
+            if wan_version == "auto":
+                wan_version = self._detect_wan_version(image)
+            
+            # Adjust detection confidence for WAN compatibility
+            detection_confidence = self._adjust_confidence_for_wan(detection_confidence, wan_version)
         
-        # Process with MediaPipe
-        rgb_image = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(rgb_image)
+            # Convert input with enhanced error handling
+            if isinstance(image, torch.Tensor):
+                image_np = image.cpu().numpy()
+                if image_np.ndim == 4:
+                    image_np = image_np[0]
+                image_np = (image_np * 255).astype(np.uint8)
+            else:
+                raise ValueError("Input image must be a torch.Tensor")
+        
+            # Process with MediaPipe (WAN optimized)
+            rgb_image = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+            
+            # Apply WAN-specific hand detection settings
+            if wan_version == "wan_2.1":
+                # Optimize for 480p efficiency
+                self.hands.min_detection_confidence = detection_confidence * 1.1
+                self.hands.max_num_hands = min(max_hands, 2)  # Limit for 480p
+            elif wan_version == "wan_2.2":
+                # Optimize for 720p quality
+                self.hands.min_detection_confidence = detection_confidence * 0.9
+                self.hands.max_num_hands = max_hands
+            
+            results = self.hands.process(rgb_image)
         
         hand_landmarks = []
         gestures = []
@@ -87,6 +117,11 @@ class HandTracking:
                         landmark.y * h,
                         landmark.z
                     ]
+                
+                # Add T2I-Adapter compatibility metadata
+                if enable_t2i_adapter:
+                    hand_points = np.column_stack([hand_points, 
+                                                 np.full((21, 1), 1.0)])  # Add adapter compatibility flag
                 
                 hand_landmarks.append(hand_points)
                 
@@ -111,7 +146,35 @@ class HandTracking:
         # Convert to tensor
         annotated_tensor = torch.from_numpy(annotated.astype(np.float32) / 255.0).unsqueeze(0)
         
-        return (hand_landmarks, annotated_tensor, gesture_string, confidence)
+            return (hand_landmarks, annotated_tensor, gesture_string, confidence)
+            
+        except Exception as e:
+            self.logger.error(f"Error in hand tracking: {str(e)}")
+            # Return safe defaults
+            h, w = 512, 512
+            if isinstance(image, torch.Tensor) and len(image.shape) >= 2:
+                h, w = image.shape[-2:]
+            empty_landmarks = []
+            empty_image = torch.zeros((1, h, w, 3), dtype=torch.float32)
+            return (empty_landmarks, empty_image, "none", 0.0)
+    
+    def _detect_wan_version(self, image):
+        """Auto-detect WAN version based on input characteristics"""
+        if isinstance(image, torch.Tensor):
+            h, w = image.shape[-2:]
+            if h <= 480 or w <= 480:
+                return "wan_2.1"
+            else:
+                return "wan_2.2"
+        return "wan_2.2"
+            
+    def _adjust_confidence_for_wan(self, confidence, wan_version):
+        """Adjust confidence threshold for WAN compatibility"""
+        if wan_version == "wan_2.1":
+            return min(confidence * 1.05, 1.0)
+        elif wan_version == "wan_2.2":
+            return confidence * 0.98
+        return confidence
     
     def _recognize_gesture(self, hand_points):
         """Simple gesture recognition"""
