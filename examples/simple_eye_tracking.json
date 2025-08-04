@@ -1,0 +1,105 @@
+{
+  "version": "0.4",
+  "last_node_id": 3,
+  "last_link_id": 4,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "VideoFrameLoader",
+      "pos": [50, 50],
+      "size": {"0": 315, "1": 300},
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {"name": "frames", "type": "IMAGE", "links": [1], "shape": 3},
+        {"name": "metadata", "type": "VIDEO_METADATA", "links": null},
+        {"name": "total_frames", "type": "INT", "links": null},
+        {"name": "actual_fps", "type": "FLOAT", "links": null}
+      ],
+      "properties": {"Node name for S&R": "VideoFrameLoader"},
+      "widgets_values": [
+        "input_video.mp4",
+        0,
+        -1,
+        1,
+        30.0,
+        -1,
+        -1,
+        "medium",
+        true,
+        4,
+        16,
+        2.0,
+        "RGB"
+      ],
+      "title": "📹 Load Video"
+    },
+    {
+      "id": 2,
+      "type": "NeuralPupilTracker",
+      "pos": [400, 50],
+      "size": {"0": 315, "1": 400},
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {"name": "image", "type": "IMAGE", "link": 1}
+      ],
+      "outputs": [
+        {"name": "tracking_result", "type": "EYE_TRACKING_RESULT", "links": [2], "shape": 3},
+        {"name": "annotated_image", "type": "IMAGE", "links": [3], "shape": 3},
+        {"name": "gaze_visualization", "type": "IMAGE", "links": null},
+        {"name": "left_eye_mask", "type": "MASK", "links": null},
+        {"name": "right_eye_mask", "type": "MASK", "links": null}
+      ],
+      "properties": {"Node name for S&R": "NeuralPupilTracker"},
+      "widgets_values": [
+        1.0,
+        0.7,
+        0.25,
+        300.0,
+        true,
+        true,
+        true,
+        true
+      ],
+      "title": "👁️ Track Eyes"
+    },
+    {
+      "id": 3,
+      "type": "PreviewImage",
+      "pos": [750, 50],
+      "size": {"0": 315, "1": 246},
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {"name": "images", "type": "IMAGE", "link": 3}
+      ],
+      "properties": {"Node name for S&R": "PreviewImage"},
+      "title": "👀 Preview Result"
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "IMAGE"],
+    [2, 2, 0, 3, 0, "EYE_TRACKING_RESULT"],
+    [3, 2, 1, 3, 0, "IMAGE"]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.0,
+      "offset": [0, 0]
+    },
+    "info": {
+      "name": "Simple Eye Tracking",
+      "author": "Kanibus Team",
+      "description": "Basic eye tracking workflow for testing Kanibus installation",
+      "version": "1.0",
+      "created": "2024-08-04"
+    }
+  }
+}
