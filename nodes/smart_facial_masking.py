@@ -67,7 +67,11 @@ class SmartFacialMasking:
         try:
             # Auto-detect WAN version if needed
             if wan_version == "auto":
-                wan_version = self._detect_wan_version(image)
+                try:
+                    wan_version = self._detect_wan_version(image)
+                except Exception as e:
+                    self.logger.warning(f"WAN version auto-detection failed: {e}, defaulting to wan_2.2")
+                    wan_version = "wan_2.2"
             
             # Adjust parameters for WAN compatibility
             feather_amount = self._adjust_feather_for_wan(feather_amount, wan_version)
@@ -80,7 +84,8 @@ class SmartFacialMasking:
                     image_np = image_np[0]
                 image_np = (image_np * 255).astype(np.uint8)
             else:
-                raise ValueError("Input image must be a torch.Tensor")
+                self.logger.error(f"Invalid input image type: {type(image)}")
+                raise ValueError(f"Input image must be a torch.Tensor, got {type(image)}")
         
             h, w = image_np.shape[:2]
         
@@ -144,7 +149,8 @@ class SmartFacialMasking:
             
             # Add T2I-Adapter compatibility information
             if enable_t2i_adapter:
-                adapter_info = {
+                # Store adapter info for potential future use
+                self.last_adapter_info = {
                     "t2i_adapter_compatible": True,
                     "wan_version": wan_version,
                     "coverage_ratio": float(coverage_ratio),
@@ -162,8 +168,12 @@ class SmartFacialMasking:
             self.logger.error(f"Error in facial masking: {str(e)}")
             # Return safe defaults
             h, w = 512, 512
-            if isinstance(image, torch.Tensor) and len(image.shape) >= 2:
-                h, w = image.shape[-2:]
+            try:
+                if isinstance(image, torch.Tensor) and len(image.shape) >= 2:
+                    h, w = image.shape[-2:]
+            except Exception as shape_error:
+                self.logger.warning(f"Could not extract shape from input: {shape_error}")
+            
             empty_mask = torch.zeros((1, h, w, 1), dtype=torch.float32)
             empty_image = torch.zeros((1, h, w, 3), dtype=torch.float32)
             return (empty_mask, empty_image, empty_mask, 0.0)

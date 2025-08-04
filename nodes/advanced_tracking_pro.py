@@ -67,7 +67,11 @@ class AdvancedTrackingPro:
         try:
             # Auto-detect WAN version if needed
             if wan_version == "auto":
-                wan_version = self._detect_wan_version(image)
+                try:
+                    wan_version = self._detect_wan_version(image)
+                except Exception as e:
+                    self.logger.warning(f"WAN version auto-detection failed: {e}, defaulting to wan_2.2")
+                    wan_version = "wan_2.2"
         
             # Convert input with enhanced error handling
             if isinstance(image, torch.Tensor):
@@ -76,7 +80,8 @@ class AdvancedTrackingPro:
                     image_np = image_np[0]
                 image_np = (image_np * 255).astype(np.uint8)
             else:
-                raise ValueError("Input image must be a torch.Tensor")
+                self.logger.error(f"Invalid input image type: {type(image)}")
+                raise ValueError(f"Input image must be a torch.Tensor, got {type(image)}")
         
             # Apply WAN-specific optimizations
             confidence_threshold = self._adjust_confidence_for_wan(confidence_threshold, wan_version)
@@ -124,8 +129,12 @@ class AdvancedTrackingPro:
             self.logger.error(f"Error in advanced tracking: {str(e)}")
             # Return safe defaults
             h, w = 512, 512
-            if isinstance(image, torch.Tensor) and len(image.shape) >= 2:
-                h, w = image.shape[-2:]
+            try:
+                if isinstance(image, torch.Tensor) and len(image.shape) >= 2:
+                    h, w = image.shape[-2:]
+            except Exception as shape_error:
+                self.logger.warning(f"Could not extract shape from input: {shape_error}")
+            
             empty_detections = []
             empty_image = torch.zeros((1, h, w, 3), dtype=torch.float32)
             empty_mask = torch.zeros((1, h, w, 1), dtype=torch.float32)

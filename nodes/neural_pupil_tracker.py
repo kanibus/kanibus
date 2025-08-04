@@ -155,7 +155,7 @@ class NeuralPupilTracker:
                 "enable_3d_gaze": ("BOOLEAN", {"default": True}),
                 "enable_saccade_detection": ("BOOLEAN", {"default": True}),
                 "enable_pupil_dilation": ("BOOLEAN", {"default": True}),
-                "cache_results": ("BOOLEAN", {"default": True}),
+                "enable_caching": ("BOOLEAN", {"default": True}),
             }
         }
     
@@ -380,7 +380,7 @@ class NeuralPupilTracker:
     
     def track_pupils(self, image, sensitivity=1.0, smoothing=0.7, blink_threshold=0.25, 
                     saccade_threshold=300.0, previous_result=None, enable_3d_gaze=True,
-                    enable_saccade_detection=True, enable_pupil_dilation=True, cache_results=True):
+                    enable_saccade_detection=True, enable_pupil_dilation=True, enable_caching=True):
         """Main pupil tracking function"""
         
         start_time = time.time()
@@ -397,7 +397,7 @@ class NeuralPupilTracker:
         
         # Check cache
         frame_id = f"frame_{self.frame_count}"
-        if cache_results:
+        if enable_caching:
             cached_result = self.cache_manager.get(f"pupil_tracking_{frame_id}")
             if cached_result is not None:
                 return self._format_output(cached_result, image_np)
@@ -536,7 +536,7 @@ class NeuralPupilTracker:
         )
         
         # Cache result
-        if cache_results:
+        if enable_caching:
             self.cache_manager.put(f"pupil_tracking_{frame_id}", tracking_result, priority=2)
         
         # Update performance stats

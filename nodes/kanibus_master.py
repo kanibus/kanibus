@@ -307,11 +307,12 @@ class KanibusMaster:
         
         # ControlNet weights
         config.controlnet_weights = {
-            "eye_mask": kwargs.get("eye_mask_weight", 1.3),
-            "depth": kwargs.get("depth_weight", 1.0),
-            "normal": kwargs.get("normal_weight", 0.7),
-            "landmarks": kwargs.get("landmarks_weight", 0.9),
-            "pose": kwargs.get("pose_weight", 0.6),
+            "eye_mask": kwargs.get("eye_mask_weight", 1.1),
+            "depth": kwargs.get("depth_weight", 0.9),
+            "canny": kwargs.get("canny_weight", 0.6),
+            "sketch": kwargs.get("sketch_weight", 1.2),
+            "landmarks": kwargs.get("landmarks_weight", 0.8),
+            "pose": kwargs.get("pose_weight", 0.7),
             "hands": kwargs.get("hands_weight", 0.5)
         }
         
@@ -534,12 +535,12 @@ class KanibusMaster:
                 "end_percent": 1.0
             })
         
-        # Normal map conditioning
+        # Normal map conditioning (using canny as replacement for T2I-Adapter compatibility)
         if result.normal_map is not None:
             conditioning.append({
-                "type": "normal",
+                "type": "canny",
                 "image": result.normal_map,
-                "weight": config.controlnet_weights["normal"],
+                "weight": config.controlnet_weights["canny"],
                 "start_percent": 0.0,
                 "end_percent": 1.0
             })

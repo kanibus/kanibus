@@ -61,7 +61,11 @@ class NormalMapGenerator:
         try:
             # Auto-detect WAN version if needed
             if wan_version == "auto":
-                wan_version = self._detect_wan_version(depth_map)
+                try:
+                    wan_version = self._detect_wan_version(depth_map)
+                except Exception as e:
+                    self.logger.warning(f"WAN version auto-detection failed: {e}, defaulting to wan_2.2")
+                    wan_version = "wan_2.2"
             
             # Adjust strength for WAN compatibility
             strength = self._adjust_strength_for_wan(strength, wan_version)
@@ -74,7 +78,8 @@ class NormalMapGenerator:
                 if depth_np.shape[-1] > 1:
                     depth_np = depth_np[:, :, 0]  # Use first channel
             else:
-                raise ValueError("Input depth_map must be a torch.Tensor")
+                self.logger.error(f"Invalid input depth_map type: {type(depth_map)}")
+                raise ValueError(f"Input depth_map must be a torch.Tensor, got {type(depth_map)}")
         
             # Apply WAN-specific blur settings
             if blur_radius > 0:
@@ -102,11 +107,11 @@ class NormalMapGenerator:
             
             grad_x = cv2.Sobel(depth_np, cv2.CV_64F, 1, 0, ksize=ksize) * strength
             grad_y = cv2.Sobel(depth_np, cv2.CV_64F, 0, 1, ksize=ksize) * strength
-        
-        if invert_y:
-            grad_y = -grad_y
-        
-        # Create normal vectors
+            
+            if invert_y:
+                grad_y = -grad_y
+            
+            # Create normal vectors
         normal = np.zeros((depth_np.shape[0], depth_np.shape[1], 3))
         normal[:, :, 0] = -grad_x  # X component (red)
         normal[:, :, 1] = -grad_y  # Y component (green)
@@ -117,36 +122,40 @@ class NormalMapGenerator:
         normal = normal / (norm + 1e-8)
         
         # Convert to 0-1 range
-        normal_map = (normal + 1.0) / 2.0
-        
-        # Create visualization (more saturated)
-        normal_vis = normal_map.copy()
-        normal_vis = np.clip(normal_vis * 1.2, 0, 1)
-        
+            normal_map = (normal + 1.0) / 2.0
+            
+            # Create visualization (more saturated)
+            normal_vis = normal_map.copy()
+            normal_vis = np.clip(normal_vis * 1.2, 0, 1)
+            
             # Calculate detail strength
             detail_strength = np.std(grad_x) + np.std(grad_y)
             
             # Add T2I-Adapter compatibility metadata
             if enable_t2i_adapter:
-                # Add adapter compatibility information to tensor metadata
-                normal_map_meta = {
+                # Store adapter compatibility information for potential future use
+                self.last_adapter_info = {
                     "t2i_adapter_compatible": True,
                     "wan_version": wan_version,
                     "detail_strength": float(detail_strength)
                 }
-        
-        # Convert to tensors
-        normal_tensor = torch.from_numpy(normal_map.astype(np.float32)).unsqueeze(0)
-        vis_tensor = torch.from_numpy(normal_vis.astype(np.float32)).unsqueeze(0)
-        
+            
+            # Convert to tensors
+            normal_tensor = torch.from_numpy(normal_map.astype(np.float32)).unsqueeze(0)
+            vis_tensor = torch.from_numpy(normal_vis.astype(np.float32)).unsqueeze(0)
+            
             return (normal_tensor, vis_tensor, detail_strength)
             
         except Exception as e:
             self.logger.error(f"Error in normal map generation: {str(e)}")
             # Return safe defaults
             h, w = 512, 512
-            if isinstance(depth_map, torch.Tensor) and len(depth_map.shape) >= 2:
-                h, w = depth_map.shape[-2:]
+            try:
+                if isinstance(depth_map, torch.Tensor) and len(depth_map.shape) >= 2:
+                    h, w = depth_map.shape[-2:]
+            except Exception as shape_error:
+                self.logger.warning(f"Could not extract shape from input: {shape_error}")
+            
             empty_normal = torch.full((1, h, w, 3), 0.5, dtype=torch.float32)  # Neutral normal map
             empty_vis = torch.full((1, h, w, 3), 0.5, dtype=torch.float32)
             return (empty_normal, empty_vis, 0.0)

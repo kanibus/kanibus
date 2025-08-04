@@ -123,9 +123,9 @@ class ObjectSegmentation:
                         masks.append(mask_dict)
                     else:
                         masks.append(mask)
-        
-        # Create segmented image
-        segmented = image_np.copy()
+            
+            # Create segmented image
+            segmented = image_np.copy()
         mask_overlay = np.zeros_like(image_np)
         
             for i, mask_data in enumerate(masks):

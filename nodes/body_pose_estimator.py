@@ -99,14 +99,14 @@ class BodyPoseEstimator:
                 self.pose.min_detection_confidence = detection_confidence * 0.9
             
             results = self.pose.process(rgb_image)
-        
-        pose_landmarks = None
-        annotated = image_np.copy()
-        person_mask = np.zeros(image_np.shape[:2], dtype=np.uint8)
-        confidence = 0.0
-        
-        if results.pose_landmarks:
-            h, w = image_np.shape[:2]
+            
+            pose_landmarks = None
+            annotated = image_np.copy()
+            person_mask = np.zeros(image_np.shape[:2], dtype=np.uint8)
+            confidence = 0.0
+            
+            if results.pose_landmarks:
+                h, w = image_np.shape[:2]
             
             # Convert landmarks to array
             pose_landmarks = np.zeros((33, 3))  # MediaPipe has 33 pose landmarks

@@ -72,7 +72,11 @@ class LandmarkPro468:
         try:
             # Auto-detect WAN version if needed
             if wan_version == "auto":
-                wan_version = self._detect_wan_version(image)
+                try:
+                    wan_version = self._detect_wan_version(image)
+                except Exception as e:
+                    self.logger.warning(f"WAN version auto-detection failed: {e}, defaulting to wan_2.2")
+                    wan_version = "wan_2.2"
             
             # Adjust confidence for WAN compatibility
             detection_confidence = self._adjust_confidence_for_wan(detection_confidence, wan_version)
@@ -85,7 +89,8 @@ class LandmarkPro468:
                     image_np = image_np[0]
                 image_np = (image_np * 255).astype(np.uint8)
             else:
-                raise ValueError("Input image must be a torch.Tensor")
+                self.logger.error(f"Invalid input image type: {type(image)}")
+                raise ValueError(f"Input image must be a torch.Tensor, got {type(image)}")
         
             # Process with MediaPipe (WAN optimized)
             rgb_image = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
@@ -94,7 +99,7 @@ class LandmarkPro468:
             if wan_version == "wan_2.1":
                 # Optimize for 480p efficiency
                 self.face_mesh.min_detection_confidence = detection_confidence * 1.1
-                self.face_mesh.refine_landmarks = enable_refinement and False  # Disable refinement for 480p
+                self.face_mesh.refine_landmarks = False  # Disable refinement for 480p efficiency
             elif wan_version == "wan_2.2":
                 # Optimize for 720p quality
                 self.face_mesh.min_detection_confidence = detection_confidence * 0.9
@@ -126,11 +131,11 @@ class LandmarkPro468:
             for point in landmarks_array[:, :2].astype(int):
                 cv2.circle(annotated, tuple(point), 1, (0, 255, 0), -1)
             
-            # Create face mask
-            face_mask = np.zeros((h, w), dtype=np.uint8)
-            hull = cv2.convexHull(landmarks_array[:, :2].astype(np.int32))
-            cv2.fillPoly(face_mask, [hull], 255)
-            
+                # Create face mask
+                face_mask = np.zeros((h, w), dtype=np.uint8)
+                hull = cv2.convexHull(landmarks_array[:, :2].astype(np.int32))
+                cv2.fillPoly(face_mask, [hull], 255)
+                
                 confidence = 0.9
             else:
                 # No face detected
@@ -141,19 +146,23 @@ class LandmarkPro468:
                 annotated = image_np.copy()
                 face_mask = np.zeros(image_np.shape[:2], dtype=np.uint8)
                 confidence = 0.0
-        
-        # Convert to tensor format
-        annotated_tensor = torch.from_numpy(annotated.astype(np.float32) / 255.0).unsqueeze(0)
-        mask_tensor = torch.from_numpy(face_mask.astype(np.float32) / 255.0).unsqueeze(0).unsqueeze(-1)
-        
+            
+            # Convert to tensor format
+            annotated_tensor = torch.from_numpy(annotated.astype(np.float32) / 255.0).unsqueeze(0)
+            mask_tensor = torch.from_numpy(face_mask.astype(np.float32) / 255.0).unsqueeze(0).unsqueeze(-1)
+            
             return (landmarks_array, annotated_tensor, mask_tensor, confidence)
             
         except Exception as e:
             self.logger.error(f"Error in landmark detection: {str(e)}")
             # Return safe defaults
             h, w = 512, 512
-            if isinstance(image, torch.Tensor) and len(image.shape) >= 2:
-                h, w = image.shape[-2:]
+            try:
+                if isinstance(image, torch.Tensor) and len(image.shape) >= 2:
+                    h, w = image.shape[-2:]
+            except Exception as shape_error:
+                self.logger.warning(f"Could not extract shape from input: {shape_error}")
+            
             empty_landmarks = np.zeros((468, 3))
             empty_image = torch.zeros((1, h, w, 3), dtype=torch.float32)
             empty_mask = torch.zeros((1, h, w, 1), dtype=torch.float32)

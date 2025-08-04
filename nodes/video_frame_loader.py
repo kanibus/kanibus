@@ -375,6 +375,7 @@ class VideoFrameLoader:
     def load_video_frames(self, video_path: str, start_frame: int = 0, frame_count: int = -1,
                          step: int = 1, target_fps: float = -1.0, resize_width: int = -1,
                          resize_height: int = -1, quality: str = "high", enable_caching: bool = True,
+                         wan_version: str = "auto", optimize_for_wan: bool = True,
                          batch_size: int = 8, preload_frames: int = 32, color_space: str = "RGB"):
         """Load video frames with all optimizations"""
         
@@ -397,6 +398,13 @@ class VideoFrameLoader:
             
             if not selected_frames:
                 raise ValueError("No frames selected for loading")
+            
+            # Apply WAN optimizations if enabled
+            if optimize_for_wan:
+                resize_width, resize_height, target_fps, wan_info = self._optimize_for_wan(
+                    wan_version, resize_width, resize_height, target_fps
+                )
+                self.logger.info(f"WAN optimization applied: {wan_info}")
             
             # Determine actual output dimensions
             output_width = resize_width if resize_width > 0 else metadata.width

@@ -99,13 +99,13 @@ class HandTracking:
                 self.hands.max_num_hands = max_hands
             
             results = self.hands.process(rgb_image)
-        
-        hand_landmarks = []
-        gestures = []
-        annotated = image_np.copy()
-        confidence = 0.0
-        
-        if results.multi_hand_landmarks:
+            
+            hand_landmarks = []
+            gestures = []
+            annotated = image_np.copy()
+            confidence = 0.0
+            
+            if results.multi_hand_landmarks:
             h, w = image_np.shape[:2]
             
             for hand_idx, landmarks in enumerate(results.multi_hand_landmarks):
