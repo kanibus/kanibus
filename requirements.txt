@@ -1,6 +1,10 @@
 # Kanibus WAN-Compatible Eye-Tracking System Dependencies (2025)
 # =============================================================
 # Updated for T2I-Adapter support and WAN 2.1/2.2 compatibility
+# 
+# NOTE: Some packages may have version conflicts. If installation fails, try:
+# pip install --upgrade pip setuptools wheel
+# Then run the requirements install again
 
 # Core ML/CV Libraries (REQUIRED)
 mediapipe>=0.10.8
@@ -24,7 +28,6 @@ scikit-learn>=1.3.0
 scikit-image>=0.21.0
 
 # Deep Learning Optimization
-torchmetrics>=1.2.0
 albumentations>=1.3.0
 accelerate>=0.25.0  # For model optimization
 
@@ -47,7 +50,7 @@ python-dotenv>=1.0.0
 # ========================
 # onnx>=1.15.0  # For ONNX export
 # onnxruntime-gpu>=1.16.0  # For ONNX inference
-# tensorrt>=8.6.0  # For TensorRT optimization (NVIDIA only)
+# tensorrt>=8.6.0  # For TensorRT optimization (NVIDIA only) - MAY FAIL ON SOME SYSTEMS
 
 # Development Tools (Optional)
 # ===========================
